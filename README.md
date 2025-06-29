@@ -80,11 +80,13 @@ Before setting up the CI/CD pipeline, ensure the following are in place:
 1. Create a GitHub repository (e.g., `sample-python-demo`).  
 2. Add the following files:
 
-   - 📄 `app.py`: Flask application code  
-   - 📄 `Dockerfile`: Docker configuration for the Flask app  
-   - 📄 `buildspec.yml`: CodeBuild configuration  
-   - 📄 `appspec.yml`: CodeDeploy configuration  
-   - 📄 `requirements.txt`: List of Python dependencies  
+   - 📄 `app.py`: Flask application code.
+   - 📄 `Dockerfile`: Docker configuration for the Flask app.
+   - 📄 `buildspec.yml`: CodeBuild configuration.  
+   - 📄 `appspec.yml`: CodeDeploy configuration.
+   - 📄 `requirements.txt`: List of Python dependencies.
+   - 📄 `start_container.sh`: To start the container.
+   - 📄 `stop_container.sh`: To stop the container.
 
 ---
 
