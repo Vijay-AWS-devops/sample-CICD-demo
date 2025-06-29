@@ -38,9 +38,10 @@ Before setting up the CI/CD pipeline, ensure the following are in place:
 👥 **IAM User (Recommended)**: Create an IAM user with the following policies:
 
 - 📁 `AmazonS3FullAccess`: Manage S3 buckets for artifacts.  
-- 🔨 `AWSCodeBuildDeveloperAccess`: Create and manage CodeBuild projects.  
+- 🔨 `AWSCodeBuildAdminAccess`: Create and manage CodeBuild projects.  
 - 🚚 `AWSCodeDeployFullAccess`: Manage CodeDeploy applications and deployments.  
 - 🛡️ `IAMFullAccess` (Use cautiously, for project purposes only).
+- 🔐 `SecretsManagerReadWrite`:This allows you to store and rotate your secret keys for GitHub.
 
 🏷️ **IAM Role**: Create a role for AWS services (CodeBuild, CodePipeline, CodeDeploy) to interact with each other or you can allow the service to create on its own.
 
@@ -62,11 +63,12 @@ Before setting up the CI/CD pipeline, ensure the following are in place:
 4. Attach the required policies:
 
    - 📁 `AmazonS3FullAccess`  
-   - 🔨 `AWSCodeBuildDeveloperAccess`  
+   - 🔨 `AWSCodeBuildAdminAccess`  
    - 🚚 `AWSCodeDeployFullAccess`  
    - 🛡️ `IAMFullAccess` *(optional, adjust based on security needs)*
+   - 🔐 `SecretsManagerReadWrite`
 
-   ![image](https://github.com/user-attachments/assets/90716353-bd3b-490a-bb23-71cd3f1f6862)
+   ![image](https://github.com/user-attachments/assets/3500c05e-d072-4d7b-af18-f72be9824afd)
 
 
 6. Download the `.csv` file containing the IAM user’s credentials (username, password, and login URL).  
