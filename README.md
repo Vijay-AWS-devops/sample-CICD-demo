@@ -55,7 +55,10 @@ Before setting up the CI/CD pipeline, ensure the following are in place:
 
 1. Log in to the AWS Console as the root user.  
 2. Navigate to **IAM > Users > Create User**.  
-3. Enter a username (e.g., `IAM_User_1`).  
+3. Enter a username (e.g., `IAM_User_1`).
+
+   ![image](https://github.com/user-attachments/assets/799e66b6-e73f-4cd8-a6b6-823ab7bfc82b)
+
 4. Attach the required policies:
 
    - 📁 `AmazonS3FullAccess`  
@@ -63,7 +66,10 @@ Before setting up the CI/CD pipeline, ensure the following are in place:
    - 🚚 `AWSCodeDeployFullAccess`  
    - 🛡️ `IAMFullAccess` *(optional, adjust based on security needs)*
 
-5. Download the `.csv` file containing the IAM user’s credentials (username, password, and login URL).  
+   ![image](https://github.com/user-attachments/assets/90716353-bd3b-490a-bb23-71cd3f1f6862)
+
+
+6. Download the `.csv` file containing the IAM user’s credentials (username, password, and login URL).  
 
 > 💡 **Tip**: Store credentials securely and avoid committing them to version control.
 
