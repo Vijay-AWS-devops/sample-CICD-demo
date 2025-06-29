@@ -98,4 +98,117 @@ Before setting up the CI/CD pipeline, ensure the following are in place:
 2. Create a repository (e.g., `sample-python-app`) to store the Docker image.  
 3. Note the repository name (e.g., `yourusername/sample-python-app`).
 
+![image](https://github.com/user-attachments/assets/d688d5b3-9447-4542-8bb2-2cfd30fc1f72)
+---
+
+## Step 4: Configure AWS CodeBuild
+
+To begin configuring AWS CodeBuild, follow the steps below:
+
+### 1. Create a Build Project
+
+1. Log in to the [AWS Management Console](https://console.aws.amazon.com/).
+2. Navigate to **CodeBuild** under the *Developer Tools* section.
+3. Click on **Create build project**.
+
+   - Give your project a name (e.g., `sample_python_demo`).
+   - Select the **project type** as *Default*.
+
+---
+
+### 2. Set Source Repository
+
+- Choose **Source provider** as **GitHub**.
+- If prompted with “You have not connected to GitHub,” click **Manage account credentials**.
+
+![image](https://github.com/user-attachments/assets/960883f4-505f-4cfd-ba77-53e9ea33ed30)
+
+
+#### Connect to GitHub via OAuth
+
+1. In the popup window:
+   - Select **Credential type** as **OAuth app**.
+   - Choose **Service** as **Secrets Manager**.
+   - Select **Secrets** as **New Secret** and click **Connect to GitHub**.
+
+![image](https://github.com/user-attachments/assets/10c04d97-552c-403a-9b1d-5aab83c09c8c)
+
+
+2. A new window will appear asking you to sign in to GitHub:
+   - Enter your **GitHub username and password**.
+   - Click **Sign in**.
+   - You’ll see a screen titled “Processing OAuth Request.”
+  
+![image](https://github.com/user-attachments/assets/b91958b2-98e4-46bb-9124-164e47e1ef54)
+
+
+3. Complete the connection by entering:
+   - A **Secret Key Name**.
+   - A brief **Description**.
+   - Click **Confirm**.
+
+#### Provide Repository URL
+
+After connecting, return to the CodeBuild setup and enter your GitHub repository URL in the following format:
+
+```
+https://github.com/<your-github-username>/<your-repository-name>
+```
+
+---
+
+### 3. Configure Build Environment
+
+In the **Environment** section:
+
+- **Provisioning model:** On Demand
+- **Environment image:** Managed Image
+- **Compute:** EC2
+- **Running mode:** Container
+- **Operating system:** Ubuntu
+- **Runtime(s):** Standard
+- **Image:** `aws/codebuild/standard:7.0` *(always choose the latest version available)*
+
+---
+
+### 4. IAM Role Configuration
+
+- Under the **Role** section, you can either:
+  - Choose **New service role** — this allows CodeBuild to create and manage the role automatically.
+  - Or select an existing IAM role with appropriate permissions.
+
+For simplicity during this demo, select **New service role**.
+
+![image](https://github.com/user-attachments/assets/4645bba6-611b-409a-92ce-99f293e07763)
+
+---
+
+### 5. Additional Configuration
+
+Under **Additional configuration**:
+
+- Enable the **Privileged flag** if you plan to:
+  - Build Docker images.
+  - Require elevated privileges during the build process.
+
+---
+
+### 6. BuildSpec Configuration
+
+The **BuildSpec** defines how your code is built. You have two options:
+
+- **Insert build commands manually**  
+  Choose this option to define your build commands directly in the editor.
+
+- **Use a buildspec file from GitHub**  
+  This is recommended for more complex projects. Place a `buildspec.yml` file at the root of your repository.
+
+If you choose to insert build commands manually, switch to the editor and input your commands accordingly.
+
+![image](https://github.com/user-attachments/assets/55f5fad9-484a-4f43-b8ce-e6e6ab37dab1)
+
+---
+
+> ✅ **Tip:** For better maintainability and collaboration, always use a `buildspec.yml` file in your repository. It ensures that your build logic stays version-controlled and consistent across environments.
+
 ---
