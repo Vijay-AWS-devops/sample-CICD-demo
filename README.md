@@ -210,6 +210,288 @@ If you choose to insert build commands manually, switch to the editor and input 
 
 ---
 
-> ✅ **Tip:** For better maintainability and collaboration, always use a `buildspec.yml` file in your repository. It ensures that your build logic stays version-controlled and consistent across environments.
+# CodeBuild Configuration
+
+Below is the configuration used for building a Python application using AWS CodeBuild and Docker.
+
+## Build Specification
+
+```yaml
+version: 0.2
+
+env:
+  parameter-store:
+    DOCKER_USERNAME: 
+    DOCKER_PASSWORD: 
+    DOCKER_URL: 
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+
+  pre_build:
+    commands:
+      - pip install -r requirements.txt
+
+  build:
+    commands:
+      - echo "Building Docker image"
+      - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin "$DOCKER_URL"
+      - docker build -t "$DOCKER_URL/$DOCKER_USERNAME/sample-python-app:latest" .
+      - docker push "$DOCKER_URL/$DOCKER_USERNAME/sample-python-app:latest"
+
+  post_build:
+    commands:
+      - echo "Build is successful"
+```
 
 ---
+
+## Setup Instructions
+
+> Note: Parameter values are not included as CodeBuild lacks permission to access the System Manager.
+
+### CodeBuild Role
+
+AWS CodeBuild will either:
+- Automatically create a role for you, **or**
+- You can create and attach the necessary policies and add an existing IAM role.
+
+After creating the project: (If the Codebuilder creates a Role)
+
+1. Go to **IAM Console > Roles**.
+2. Search for the role created by CodeBuild.
+3. Attach the following permissions to that role:
+
+- `AmazonS3FullAccess`
+- `AmazonSSMFullAccess`
+
+After setting up your IAM role, navigate to **AWS Systems Manager > Parameter Store** and create the following secure parameters:
+
+## Step-by-Step Setup Instructions
+
+### 1. Create Parameters in SSM Parameter Store
+
+![image](https://github.com/user-attachments/assets/9738eced-5a87-4743-956c-565748d6023c)
+
+---
+
+#### 🔐 Docker Username
+
+- **Name**: `/myapp/docker-credentials/username`
+- **Tier**: Standard
+- **Type**: SecureString
+- **KMS Key source**: Leave as default
+- **Value**: `<Your_DockerAccount_username>`
+
+Click **Create parameter**.
+
+![image](https://github.com/user-attachments/assets/ecee18ec-a282-4506-85d1-eb398eb0a94d)
+
+---
+
+#### 🔒 Docker Password
+
+- **Name**: `/myapp/docker-credentials/password`
+- **Tier**: Standard
+- **Type**: SecureString
+- **KMS Key source**: Leave as default
+- **Value**: `<Your_DockerAccount_password>`
+
+Click **Create parameter**.
+
+---
+
+#### 🌐 Docker Registry URL
+
+- **Name**: `/myapp/docker-registry/url`
+- **Tier**: Standard
+- **Type**: SecureString
+- **KMS Key source**: Leave as default
+- **Value**: `docker.io` *(default registry URL for Docker Hub)*
+
+Click **Create parameter**.
+
+![image](https://github.com/user-attachments/assets/c12a7549-1d4e-4df0-b754-2dd04d187fc8)
+
+---
+
+### 2. Update CodeBuild Buildspec with Parameter Store Paths
+
+Once the parameters are created, update the `buildspec.yml` file with the correct paths so CodeBuild can access them during the build process.
+
+```yaml
+version: 0.2
+
+env:
+  parameter-store:
+    DOCKER_USERNAME: /myapp/docker-credentials/username
+    DOCKER_PASSWORD: /myapp/docker-credentials/password
+    DOCKER_URL: /myapp/docker-registry/url
+```
+
+---
+
+### 3. Full `buildspec.yml` File
+
+Below is the full configuration used to build and push the Docker image using AWS CodeBuild.
+
+```yaml
+version: 0.2
+
+env:
+  parameter-store:
+    DOCKER_USERNAME: /myapp/docker-credentials/username
+    DOCKER_PASSWORD: /myapp/docker-credentials/password 
+    DOCKER_URL: /myapp/docker-registry/url
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+  
+  pre_build:
+    commands:
+      - pip install -r requirements.txt
+      
+  build:
+    commands:
+       - echo "Building Docker image"
+       - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin "$DOCKER_URL"
+       - docker build -t "$DOCKER_URL/$DOCKER_USERNAME/sample-python-app:latest" .
+       - docker push "$DOCKER_URL/$DOCKER_USERNAME/sample-python-app"
+      
+  post_build:
+    commands:
+      - echo "Build is successful"
+```
+This YAML file is typically used for **AWS CodeBuild**, a fully managed continuous integration service that compiles source code, runs tests, and produces software packages ready for deployment.
+
+Let me explain **each line** of this file so you can understand what it does and how to use it in your GitHub README or documentation:
+
+---
+
+### 🧾 Full File Overview
+
+```yaml
+version: 0.2
+```
+
+> This specifies the **version of the AWS CodeBuild specification** being used. Version `0.2` is the current standard and supports most modern features.
+
+---
+
+### 🔐 Environment Configuration (Parameter Store)
+
+```yaml
+env:
+  parameter-store:
+    DOCKER_USERNAME: /myapp/docker-credentials/username
+    DOCKER_PASSWORD: /myapp/docker-credentials/password 
+    DOCKER_URL: /myapp/docker-registry/url
+```
+
+#### Explanation:
+
+- `env`: Configures environment variables for the build process.
+- `parameter-store`: Tells AWS CodeBuild to fetch these values from **AWS Systems Manager Parameter Store**, which is a secure way to store sensitive data like credentials.
+  
+Each line maps an environment variable inside the build container to a secure parameter in AWS SSM:
+
+- `DOCKER_USERNAME`: The username to authenticate with a Docker registry (e.g., Docker Hub, ECR).
+- `DOCKER_PASSWORD`: The password associated with the Docker username.
+- `DOCKER_URL`: URL of the Docker registry (e.g., `https://index.docker.io/v1/` for Docker Hub).
+
+These are **not hard-coded** here for security reasons — they're fetched securely during the build.
+
+---
+
+### ⚙️ Phases of the Build Process
+
+The build process in CodeBuild is broken into **phases**: `install`, `pre_build`, `build`, and `post_build`.
+
+---
+
+#### 📦 Phase: `install`
+
+```yaml
+install:
+  runtime-versions:
+    python: 3.11
+```
+
+- This tells CodeBuild to use **Python version 3.11** during the build process.
+- It ensures the correct language runtime is installed before any commands run.
+
+---
+
+#### 🛠️ Phase: `pre_build`
+
+```yaml
+pre_build:
+  commands:
+    - pip install -r requirements.txt
+```
+
+- Runs before the actual build.
+- Installs Python dependencies listed in `requirements.txt`.
+- Useful if your app needs certain tools or libraries to build successfully.
+
+---
+
+#### 🏗️ Phase: `build`
+
+```yaml
+build:
+  commands:
+    - echo "Building Docker image"
+```
+
+- Prints a message to indicate that the Docker image build is starting.
+
+```bash
+    - echo "DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin "$DOCKER_URL"
+```
+
+- `echo "DOCKER_PASSWORD"`: Outputs the password stored in the `DOCKER_PASSWORD` environment variable.
+  
+- `|`: Pipes the output (the password) into the next command as standard input.
+  
+- `docker login`: Command to log in to a Docker registry.
+  
+- `-u "$DOCKER_USERNAME"`: Specifies the username from the `DOCKER_USERNAME` environment variable.
+  
+- `--password-stdin`: Tells Docker to read the password from standard input (i.e., the value piped from `echo`), which is more secure than passing the password directly in the command.
+  
+- `"$DOCKER_URL"`: Specifies the URL of the Docker registry to log in to (e.g., `https://index.docker.io/v1/` for Docker Hub or a private registry URL).
+
+```bash
+    - docker build -t "$DOCKER_URL/$DOCKER_USERNAME/sample-python-app:latest" .
+```
+
+- Builds a Docker image from the `Dockerfile` in the current directory (`.`).
+- Tags the image as: `registry-url/username/sample-python-app:latest`
+
+```bash
+    - docker push "$DOCKER_URL/$DOCKER_USERNAME/sample-python-app"
+```
+
+- Pushes the built Docker image to the specified Docker registry.
+- This makes the image available for deployment elsewhere (like ECS, Kubernetes, etc.).
+
+---
+
+#### ✅ Phase: `post_build`
+
+```yaml
+post_build:
+  commands:
+    - echo "Build is successful"
+```
+
+- Runs after the build completes.
+- Outputs a success message to the logs.
+- You could also trigger notifications or deploy the image here.
+
+
