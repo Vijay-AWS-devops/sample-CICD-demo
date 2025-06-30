@@ -493,5 +493,11 @@ post_build:
 - Runs after the build completes.
 - Outputs a success message to the logs.
 - You could also trigger notifications or deploy the image here.
+  
+
+After completing the code build, just click Start Build in the AWS CodeBuild. If it succeeds, it will show the status as Succeeded.
+
+![image](https://github.com/user-attachments/assets/0bf0a079-1c3c-48fe-9520-bd256fca6cbc)
+
 
 
