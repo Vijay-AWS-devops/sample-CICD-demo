@@ -43,6 +43,7 @@ Before setting up the CI/CD pipeline, ensure the following are in place:
 - 🛡️ `IAMFullAccess` (Use cautiously, for project purposes only).
 - 🔐 `SecretsManagerReadWrite`:This allows you to store and rotate your secret keys for GitHub.
 - 📋 `AmazonSSMFullAcess`:This allows you to create parameters to store the credentials for Docker.
+- 🔄 `AWSCodePipeline_FullAccess`:This allows you to create and manage AWS CodePipeline for continuous integration.
 
 🏷️ **IAM Role**: Create a role for AWS services (CodeBuild, CodePipeline, CodeDeploy) to interact with each other or you can allow the service to create on its own.
 
