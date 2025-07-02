@@ -44,6 +44,7 @@ Before setting up the CI/CD pipeline, ensure the following are in place:
 - 🔐 `SecretsManagerReadWrite`:This allows you to store and rotate your secret keys for GitHub.
 - 📋 `AmazonSSMFullAcess`:This allows you to create parameters to store the credentials for Docker.
 - 🔄 `AWSCodePipeline_FullAccess`:This allows you to create and manage AWS CodePipeline for continuous integration.
+- 💻 `AmazonEC2FullAccess`:This allows you to create and deploy an application on an EC2 instance.
 
 🏷️ **IAM Role**: Create a role for AWS services (CodeBuild, CodePipeline, CodeDeploy) to interact with each other or you can allow the service to create on its own.
 
@@ -496,9 +497,97 @@ post_build:
 - You could also trigger notifications or deploy the image here.
   
 
-After completing the code build, just click Start Build in the AWS CodeBuild. If it succeeds, it will show the status as Succeeded.
+After completing the code build, click Start Build in AWS CodeBuild. If it succeeds, it will display the status as Succeeded.
 
 ![image](https://github.com/user-attachments/assets/0bf0a079-1c3c-48fe-9520-bd256fca6cbc)
+
+Here's an enhanced version of your content formatted as a **GitHub README.md** file, with improved structure, visuals (like badges and emojis), and additional context to make it more professional and user-friendly:
+
+---
+
+### 🚀 AWS CodePipeline Setup Guide
+
+AWS CodePipeline is a fully managed continuous delivery service that helps automate your release pipelines. It orchestrates various stages like source control, build, test, and deployment so you can rapidly and reliably release updates to your applications.
+
+
+## 🛠️ Step-by-Step Pipeline Creation
+
+### 1. **Create a New Pipeline**
+
+1. Go to the [AWS CodePipeline Console](https://console.aws.amazon.com/codepipeline/)
+2. Click **Create pipeline**
+3. Under **Creation options**, select **Build a custom pipeline**
+4. Fill in the details:
+   - **Pipeline name**: e.g., `MyAppPipeline`
+   - **Execution mode**: Choose **Queued**
+   - **Service role**: Select either:
+     - Create a new service role (recommended for simplicity)
+     - Or use an existing IAM role with proper CodePipeline permissions
+
+     ![image](https://github.com/user-attachments/assets/444ccaae-3899-48ef-8265-b268558babd5)
+
+
+Click **Next**
+
+---
+
+### 2. **Add Source Stage: GitHub**
+
+1. **Source provider**: Select **GitHub (OAuth)**
+2. Connect your GitHub account if not already connected
+3. Choose the **Repository** and **Branch** you want to monitor
+4. Select or create a webhook to enable automatic pipeline triggers on push events
+
+![image](https://github.com/user-attachments/assets/15221e03-8293-4b48-9127-ead1a34e2539)
+
+
+Click **Next**
+
+---
+
+### 3. **Add Build Stage: AWS CodeBuild**
+
+1. **Build provider**: Choose **Other build providers**
+2. Select **AWS CodeBuild**
+3. Configure the following:
+   - **Project name**: Choose an existing CodeBuild project or create one
+   - **Build type**: Select **Single build**
+   - **Region**: Ensure it matches where your CodeBuild project exists
+
+   ![image](https://github.com/user-attachments/assets/ebdcae8a-fc89-4abc-adde-a5abb93a50f5)
+
+
+Click **Next**
+
+---
+
+### 4. **Skip Test & Deploy Stages (Optional for Now)**
+
+For initial CI validation:
+- Leave **Test** and **Deploy** stages unchecked
+- We'll add them later once the base pipeline is verified
+
+Click **Next**, review all settings, and click **Create pipeline**
+
+---
+
+## 🧪 Verifying the Pipeline
+
+After creation, the pipeline will automatically start running:
+
+✅ If successful:
+- The build status will show as **Succeeded**
+- You should see a Docker image pushed to your container registry (if configured in your buildspec)
+
+![image](https://github.com/user-attachments/assets/58d7487e-a6ed-494c-a7ae-64210bf318ba)
+
+Latest Image in Docker repository
+
+![image](https://github.com/user-attachments/assets/cdfc8a7b-b0c5-46af-af2f-9cc0895dae28)
+
+💡 Tip: Check the CodeBuild logs for detailed output if any stage fails.
+
+
 
 
 
