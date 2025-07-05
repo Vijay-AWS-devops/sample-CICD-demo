@@ -2,6 +2,9 @@
 
 This project demonstrates a seamless CI/CD pipeline for deploying a simple Flask Python application using AWS services: **AWS CodeBuild**, **AWS CodePipeline**, and **AWS CodeDeploy**. The pipeline automates building, testing, and deploying the Flask app to an AWS environment.
 
+![Picsart_25-07-02_22-54-19-380](https://github.com/user-attachments/assets/5ec33a02-dd98-4c92-8feb-bea7928540be)
+
+
 ---
 
 ## 🧭 Project Overview
@@ -587,7 +590,380 @@ Latest Image in Docker repository
 
 💡 Tip: Check the CodeBuild logs for detailed output if any stage fails.
 
+Here's a **GitHub README.md** version of your content, with enhanced formatting, structure, and explanations to make it more professional and easy to follow:
+
+---
+
+# 🚀 Continuous Deployment with AWS CodeDeploy (Ubuntu EC2 Setup)
+
+## ✅ Step-by-Step Guide
+
+### 1. Create an Application in AWS CodeDeploy
+
+1. Go to the [AWS CodeDeploy Console](https://console.aws.amazon.com/codedeploy).
+2. Click **Create application**.
+3. Enter:
+   - **Application name**: e.g., `MyApp`
+   - **Compute platform**: Select `EC2`
+4. Click **Create application**.
+
+![image](https://github.com/user-attachments/assets/c3910205-1d28-4877-ab3e-0f30542bd3cc)
 
 
+---
+
+### 2. Launch an Ubuntu EC2 Instance
+
+1. Navigate to the **EC2 Dashboard**.
+2. Click **Launch Instance**.
+3. Choose **Ubuntu Server** as your AMI.
+4. Choose an appropriate instance type.
+5. Configure instance details (ensure VPC and subnet are correctly selected).
+6. Add storage if needed.
+7. Tag your instance appropriately (we’ll use tags later for CodeDeploy).
+
+---
+
+### 3. Set Up IAM Roles for Communication
+
+To allow communication between EC2 and CodeDeploy:
+
+#### Create IAM Roles:
+- **Role for EC2 Instance (`EC2CodeDeployRole`)**:
+  - Attach the policy: `AmazonEC2RoleforAWSCodeDeploy`
+  - This allows the instance to communicate with CodeDeploy.
+
+- **Role for CodeDeploy Service**:
+  - Create a service role for CodeDeploy.
+  - Attach the policy: `AWSCodeDeployRole`
+  - Trust relationship should allow CodeDeploy to assume this role.
+
+> 🔐 You can combine both permissions into one role if needed, but it's best practice to separate concerns.
+
+---
+
+### 4. Tag Your EC2 Instance
+
+Tags help CodeDeploy identify which instances to deploy to.
+
+1. In the EC2 console, select your instance.
+2. Click **Actions > Instance Settings > Manage Tags**.
+3. Add a tag like:
+   - Key: `Name`
+   - Value: `CodeDeployInstance`
+   - Or any custom key-value pair that helps identify the target environment.
+
+---
+
+### 6. Install the AWS CodeDeploy Agent
+
+Follow these steps to install the agent on your Ubuntu instance:
+
+> 📌 For more details, refer to the official documentation:  
+> [Install the CodeDeploy Agent on Ubuntu](https://docs.aws.amazon.com/codedeploy/latest/userguide/codedeploy-agent-operations-install-ubuntu.html)
+---
+
+### 7. Check and Restart the CodeDeploy Agent
+
+#### Check Status
+
+```bash
+sudo systemctl status codedeploy-agent
+```
+
+If not running, start or restart the service:
+
+```bash
+sudo systemctl restart codedeploy-agent
+```
+
+#### Verify Again
+
+```bash
+sudo systemctl status codedeploy-agent
+```
+
+You should see `active (running)` in the output.
+
+![image](https://github.com/user-attachments/assets/0c88e6cc-e29c-4c4c-a1eb-d2b4b1f272df)
+
+---
+
+### 8. Install Docker on the EC2 Instance
+
+Most modern applications are containerized using Docker. Install Docker with the following command:
+
+```bash
+sudo apt install docker.io -y
+```
+
+#### Verify Docker Installation
+
+```bash
+docker --version
+```
+
+You should see output like:
+
+```
+Docker version 20.xx.x, build abcdefg
+```
+
+---
+
+Now that your EC2 instance is ready with the CodeDeploy agent and Docker installed. Now we need to create a Deployment group.
+
+ 
+ **Deployment Group in AWS CodeDeploy**:
+---
+
+## 🛠️ Step: Create a Deployment Group
+
+Now that your application and EC2 instance are set up, it’s time to create a **Deployment Group**. This group defines which instances will receive deployments, how they’ll be updated, and what deployment settings to use.
+
+### 🔧 Steps to Create a Deployment Group
+
+1. **Go to the AWS CodeDeploy Console**
+   - Navigate to your previously created application.
+
+2. **Click on "Create deployment group"**
+
+3. **Enter Deployment Group Name**
+   - Example: `Production-Deployment-Group`
+
+4. **Service Role**
+   - Choose the **service role** you created earlier (e.g., `CodeDeployServiceRole`)
+   - This role gives CodeDeploy permissions to interact with your EC2 instances.
+
+5. **Deployment Type**
+   - Select **In-place deployment**
+     - This updates instances in place by stopping the application, deploying the latest version, and restarting it.
+    
+   ![image](https://github.com/user-attachments/assets/d39a4b36-b26a-4df8-90b5-f870a5664532)
+
+
+6. **Environment Configuration**
+   - Select **Amazon EC2 instances**
+   - Choose the **tag(s)** you applied to your Ubuntu EC2 instance
+     - Example:
+       - Key: `Name`
+       - Value: `CodeDeployInstance`
+      
+   ![image](https://github.com/user-attachments/assets/8931c75e-5e30-45d1-a532-f46b77e99253)
+
+
+7. **Load Balancer**
+   - Leave **Disable load balancer** selected (unless you're using one)
+
+8. **Review & Create**
+   - Double-check all settings
+   - Click **Create deployment group**
+
+![image](https://github.com/user-attachments/assets/0ead4d46-9190-44d3-a090-218981ff0a1f)
+
+---
+
+### ✅ You're Almost There!
+
+With your deployment group now configured, you're just one step away from completing your continuous delivery pipeline. The final piece is preparing your **application revision** (your code or Docker image) and triggering your first deployment.
+
+---
+
+Here's a **GitHub README.md** section that explains how to create the three essential files needed for your AWS CodeDeploy deployment: `appspec.yml`, `start_container.sh`, and `stop_container.sh`.
+
+---
+
+## 📁 Required Deployment Files
+
+To successfully deploy your application using **AWS CodeDeploy**, you need the following 3 files in your repository:
+
+> ✅ **Important:** Place the `appspec.yml` file in the **root directory** of your repository.
+
+---
+
+### 1. `appspec.yml`
+
+This is the main configuration file used by CodeDeploy to understand what actions to perform during deployment.
+
+```yaml
+version: 0.0
+os: linux
+
+hooks:
+  ApplicationStop:
+    - location: scripts/stop_container.sh
+      timeout: 300
+      runas: root
+  AfterInstall:
+    - location: scripts/start_container.sh
+      timeout: 300
+      runas: root
+```
+
+- `ApplicationStop`: Stops any running Docker containers before deploying new code.
+- `AfterInstall`: Starts the new Docker container after the latest image is pulled.
+
+---
+
+### 2. `scripts/start_container.sh`
+
+This script pulls the Docker image from your registry and starts it as a container.
+
+Create a folder named `scripts` in the root directory, and place this file inside.
+
+```bash
+#!/bin/bash
+set -e
+
+# Pull the latest Docker image
+docker pull dockermvk18/sample-python-app
+
+# Run the Docker container
+docker run -d -p 5000:5000 dockermvk18/sample-python-app
+```
+
+Make sure to make the script executable:
+
+```bash
+chmod +x scripts/start_container.sh
+```
+
+---
+
+### 3. `scripts/stop_container.sh`
+
+This script stops and removes any currently running container before a new version is deployed.
+
+```bash
+#!/bin/bash
+set -e
+
+# Stop and remove the running container
+container_id=$(docker ps -q)
+if [ -n "$container_id" ]; then
+  docker rm -f "$container_id"
+fi
+```
+
+Make this script executable too:
+
+```bash
+chmod +x scripts/stop_container.sh
+```
+
+---
+
+## 🔐 Permissions Tip
+
+Ensure that your EC2 instance has proper IAM permissions to:
+- Pull images from Docker Hub or ECR
+- Manage Docker containers via CodeDeploy
+
+---
+
+Here's a **GitHub README.md** section that walks users through creating a deployment in AWS CodeDeploy and integrating it with **AWS CodePipeline** for continuous delivery.
+
+---
+
+# 🚀 Creating a Deployment and Integrating with CodePipeline
+
+Now that your application, EC2 instance, and deployment group are set up, it’s time to create a **deployment** and integrate everything into a **CI/CD pipeline** using **AWS CodePipeline**.
+
+---
+
+## 📦 Step 1: Create a Deployment in CodeDeploy
+
+1. Go to the **AWS CodeDeploy Console**.
+2. Select your application.
+3. Click **Create deployment**.
+4. Choose your **Deployment group** (e.g., `Production-Deployment-Group`).
+5. Under **Revision type**, select:
+   - **My application is stored in GitHub**
+6. Connect to GitHub by clicking **Connect to GitHub** and authorize the connection if prompted.
+
+![image](https://github.com/user-attachments/assets/59b6118b-082f-4f59-befa-b34528bfaf5b)
+
+
+### 🔍 Enter GitHub Repository Details
+
+- **Repository name**: e.g., `your-github-username/sample-python-app`
+- **Commit ID**: Copy the latest commit hash from your GitHub repository
+  - This ensures you're deploying a known version of your code
+  - You can find this under the "Insights" tab or on the "Commits" page in GitHub. The purpose of providing a commit ID is to verify whether Continuous Delivery is working or not.
+ 
+ ![image](https://github.com/user-attachments/assets/2a08b1c4-10da-4ced-92ab-55c33f540688)
+
+
+7. Click **Create deployment**
+
+   ![image](https://github.com/user-attachments/assets/1cec8684-e52b-4840-bbde-be06873eea44)
+
+
+---
+
+## 🔄 Step 2: Integrate CodeDeploy with AWS CodePipeline
+
+To automate deployments on every commit, add a **CodeDeploy stage** in **AWS CodePipeline**.
+
+### ✅ Add a Stage in CodePipeline
+
+![image](https://github.com/user-attachments/assets/127c0f98-2ff3-49f2-a50e-943498d39626)
+
+
+1. Open the **AWS CodePipeline Console**
+2. Select your pipeline
+3. Click **Edit**
+4. Scroll down and click **Add stage**
+   - Name the stage: `Deploy` or `CodeDeploy`
+
+### ➕ Add Action to the Stage
+
+1. Click **Add action**
+2. Configure the action:
+   - **Action name**: `DeployToEC2`
+   - **Action provider**: `AWS CodeDeploy`
+   - **Input artifacts**: Select the source artifact from the previous stage (usually named `SourceArtifact`)
+   - **Application name**: Your CodeDeploy application name
+   - **Deployment group**: The deployment group you created earlier
+3. Click **Done**
+
+![image](https://github.com/user-attachments/assets/d49c5a3a-9293-4c6f-acab-f85f3f7c50ba)
+
+
+### 💾 Save Pipeline Changes
+
+- Click **Save** at the top of the editor
+- Confirm changes when prompted
+
+---
+
+## 🧪 Step 3: Test the CI/CD Flow
+
+1. Make a small change in your application code (e.g., update a message or comment).
+2. Commit and push the change to your GitHub repository.
+3. Go to the **CodePipeline Console**
+   - Watch as the pipeline automatically triggers:
+     - Source → Build (if applicable) → Deploy
+
+![image](https://github.com/user-attachments/assets/6fa18e37-4241-46b5-8ee7-a45ba2f396ee)
+
+---
+
+## ✅ Success!
+
+If all stages pass successfully in CodePipeline, you’ve successfully built a **Continuous Integration and Continuous Delivery (CI/CD)** pipeline using:
+
+- GitHub (as source)
+- AWS CodePipeline (orchestration)
+- AWS CodeDeploy (automated deployment)
+- EC2 with Docker (target environment)
+
+---
+
+## 📌 Tips
+
+- Ensure your GitHub repository contains the required files (`appspec.yml`, `start_container.sh`, `stop_container.sh`) in the root directory.
+- Always test deployments manually before enabling full automation.
+---
 
 
